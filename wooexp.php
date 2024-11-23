@@ -34,35 +34,42 @@ final class WooOrderExport {
     public static function get() {
         if ( is_null( self::$instance ) && ! ( self::$instance instanceof WooOrderExport ) ) {
             self::$instance = new WooOrderExport();
+            self::$instance->define_constants();
             self::$instance->init();
         }
 
         return self::$instance;
     }
 
+    private function define_constants() {
+        define( 'WOOEXP_DIR', __DIR__ );
+    }
+
     private function init() {
         add_action( "add_meta_boxes_shop_order", array( $this, "add_order_export" ) );
     }
 
-    public function add_order_export($type) {
-        add_meta_box(
-            'wooexp',
-            '',
-            array( $this, add_order_export_layout ),
-            $type,
-        );
+    public function add_order_export( $post ) {
+        if ( $post instanceof WP_Post && 'shop_order' === $post->post_type ) {
+            add_meta_box(
+                'wooexp',
+                'wooexp',
+                array( $this, 'add_order_export_layout' ),
+                $post->post_type,
+                'advanced',
+                'high'
+            );
+        }
     }
 
     /**
      * @return void
      */
     public function add_order_export_layout() {
-        require WP_PLUGIN_DIR . '/layout/layout.php';
+        require WOOEXP_DIR . '/layout/layout.php';
 
         if ( function_exists( 'get_order_export_layout' ) ) {
             get_order_export_layout();
-        } else {
-            return wp_error(0)
         }
     }
 }

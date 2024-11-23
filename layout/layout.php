@@ -63,6 +63,7 @@ function get_order_export_layout() {
 
             .wooexp-body-covered table {
                 border-collapse: collapse;
+                margin: auto;
             }
 
             .wooexp-body-covered td {

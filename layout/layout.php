@@ -12,6 +12,10 @@ function get_order_export_layout() {
             margin: 0;
         }
 
+        #wooexp {
+            display: none;
+        }
+
         .wp-core-ui .button.wooexp-btn {
             margin: 20px;
         }

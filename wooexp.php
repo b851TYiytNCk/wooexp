@@ -7,7 +7,9 @@ use Lbtx\Installer;
  *      * Plugin Name:       WooCommerce Order Export
  *      * Version:           1.0.0
  *      * Description:       Export your WooCommerce order products in a PDF file
- *      * Author:            Vladyslav Nahornyi | Pryvus
+ *      * Author:            Vladyslav Nahornyi
+ *      * Author URI:        https://github.com/b851TYiytNCk
+ *      * Update URI:        https://github.com/b851TYiytNCk/wooexp
  *      * License:           GPL-3.0+
  *      * License URI:       https://www.gnu.org/licenses/gpl-3.0.txt
  */

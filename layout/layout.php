@@ -7,6 +7,11 @@
 function get_order_export_layout() {
     ?>
     <style id="wooexp-print-style">
+        html:has(.wooexp-body-covered) {
+            padding: 0;
+            margin: 0;
+        }
+
         .wp-core-ui .button.wooexp-btn {
             margin: 20px;
         }

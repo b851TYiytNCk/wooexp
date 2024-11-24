@@ -1,7 +1,5 @@
 <?php
 
-use Lbtx\Installer;
-
 /**
  *      * @wordpress-plugin
  *      * Plugin Name:       WooCommerce Order Export

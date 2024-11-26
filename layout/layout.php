@@ -103,7 +103,7 @@ function get_order_export_layout() {
             .wooexp-customer,
             .wooexp-body-covered .woocommerce-order-data__heading {
                 display: block;
-                margin-bottom: 1.5em;
+                margin-bottom: 1.2em;
             }
         }
     </style>
@@ -177,6 +177,7 @@ function get_order_export_layout() {
                         .find('img');
 
                     const imgThumbSrc = imgThumb.attr('src');
+                    var backToSrc;
 
                     imgThumb
                         .on('load', function() {
@@ -187,7 +188,12 @@ function get_order_export_layout() {
                         })
                         .on('error', function() {
                             if (imgThumb.attr('src') !== imgThumbSrc) {
-                                imgThumb.attr('src', imgThumbSrc)
+                                imgThumb.attr('src', imgThumbSrc);
+                                backToSrc = true;
+                            } else if (backToSrc) {
+                                if (i === orderItems.length - 1) {
+                                    setPrinting(targetEl, origBodyHTML);
+                                }
                             }
                         })
                         .attr('src',
@@ -202,7 +208,7 @@ function get_order_export_layout() {
                  * Clear layout to leave only product data in product section
                  */
                 targetEl
-                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item), .wc-order-bulk-actions')
+                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item, .cfield_oitem_reject), .wc-order-bulk-actions')
                     .remove();
 
                 targetEl.find('.wc-order-totals-items, #order_shipping_line_items, #order_fee_line_items, #order_refunds')
@@ -213,7 +219,7 @@ function get_order_export_layout() {
                  */
                 const customer = $('.wc-customer-search').find(':selected');
                 if (customer.length) {
-                    const customerHtml = $(`<h2></h2>`);
+                    const customerHtml = $(`<h3></h3>`);
                     customerHtml.addClass('wooexp-customer');
                     customerHtml.html(`Customer details: ${customer.text()}`);
                     targetEl.prepend(customerHtml);

@@ -82,8 +82,12 @@ function get_order_export_layout() {
             }
 
             .wooexp-body-covered .thumb img {
-                width: 400px;
+                width: 300px;
                 height: auto;
+            }
+
+            .wooexp-body-covered .thumb.small-width {
+                width: 150px;
             }
 
             .wooexp-body-covered tr {
@@ -196,6 +200,8 @@ function get_order_export_layout() {
                                 imgThumb.attr('src', imgThumbSrc);
                                 backToSrc = true;
                             } else if (backToSrc) {
+                                imgThumb.addClass('small-width');
+
                                 if (i === orderItems.length - 1) {
                                     setPrinting(targetEl, origBodyHTML);
                                 }

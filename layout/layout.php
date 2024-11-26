@@ -86,7 +86,7 @@ function get_order_export_layout() {
                 height: auto;
             }
 
-            .wooexp-body-covered .thumb.small-width {
+            .wooexp-body-covered .thumb .small-width {
                 width: 150px;
             }
 

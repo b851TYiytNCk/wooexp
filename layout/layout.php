@@ -191,6 +191,11 @@ function get_order_export_layout() {
                     imgThumb
                         .on('load', function() {
                             $(this).removeAttr('width height');
+
+                            if (backToSrc) {
+                                imgThumb.addClass('small-width');
+                            }
+
                             if (i === orderItems.length - 1) {
                                 setPrinting(targetEl, origBodyHTML);
                             }

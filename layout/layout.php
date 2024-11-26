@@ -2,18 +2,14 @@
 /**
  * Function that returns HTML layout for WooCommerce Export plugin
  * to be output at WooCommerce Order Edit Screen
- * @return
  */
+
 function get_order_export_layout() {
     ?>
-    <style id="wooexp-print-style">
+    <style id="wooexp-style">
         html:has(.wooexp-body-covered) {
             padding: 0;
             margin: 0;
-        }
-
-        #wooexp {
-            display: none;
         }
 
         .wp-core-ui .button.wooexp-btn {
@@ -64,6 +60,11 @@ function get_order_export_layout() {
             background: #fff;
         }
 
+        .wooexp-customer,
+        .wooexp-body-covered .woocommerce-order-data__heading {
+            display: none;
+        }
+
         @media print {
             .wooexp-body-covered:after,
             .wooexp-body-covered:before {
@@ -80,6 +81,11 @@ function get_order_export_layout() {
                 padding: 20px;
             }
 
+            .wooexp-body-covered .thumb img {
+                width: auto;
+                height: 200px;
+            }
+
             .wooexp-body-covered tr {
                 border: 1px solid #000;
                 border-bottom: 0;
@@ -92,6 +98,12 @@ function get_order_export_layout() {
 
             .wooexp-body-covered th {
                 padding: 20px;
+            }
+
+            .wooexp-customer,
+            .wooexp-body-covered .woocommerce-order-data__heading {
+                display: block;
+                margin-bottom: 1.5em;
             }
         }
     </style>
@@ -138,9 +150,9 @@ function get_order_export_layout() {
                     return console.error('There is no such element on the page.');
                 }
 
-                targetEl.find('.item').each(function() {
-                    const $this = $(this);
-                    $this.find('.thumb').appendTo($this);
+                const orderItems = targetEl.find('#order_line_items .item');
+                orderItems.each( function(i) {
+                    const $this  = $(this);
 
                     /**
                      * Create a row that contains item cost and quantity
@@ -156,19 +168,56 @@ function get_order_export_layout() {
                     const lineCost = $this.find('td.line_cost');
                     lineCost.find('.refunded, .wc-order-item-discount').remove();
                     lineCost.appendTo(tr);
-                })
 
+                    /**
+                     * Replace thumbnail with artwork original image and place to the right side
+                     */
+                    $this.find('.thumb')
+                        .appendTo($this)
+                        .find('img')
+                        .attr('src',
+                            $this.find('.download-artwork')
+                                .attr('href')
+                        ).on('load', function() {
+                            $(this).removeAttr('width height');
+                            if (i === orderItems.length - 1) {
+                                setPrinting(targetEl, origBodyHTML);
+                            }
+                        })
+                })
+            }
+
+            function setPrinting(targetEl, origBodyHTML) {
                 /**
-                 * Clear UI to leave product data only
+                 * Clear layout to leave only product data in product section
                  */
                 targetEl
-                    .find('.postbox-header, thead, #order_shipping_line_items, .button, p')
+                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item), .wc-order-bulk-actions')
                     .remove();
 
-                targetEl.find('.wc-order-totals-items, #order_fee_line_items, .wc-order-bulk-actions, #order_refunds')
+                targetEl.find('.wc-order-totals-items, #order_shipping_line_items, #order_fee_line_items, #order_refunds')
                     .remove();
 
-                targetEl.prepend($('#wooexp-print-style'));
+                /**
+                 * Add customer details to export layout
+                 */
+                const customer = $('.wc-customer-search').find(':selected');
+                if (customer.length) {
+                    const customerHtml = $(`<h2></h2>`);
+                    customerHtml.addClass('wooexp-customer');
+                    customerHtml.html(`Customer details: ${customer.text()}`);
+                    targetEl.prepend(customerHtml);
+                }
+
+                /**
+                 * Prepend order number
+                 */
+                targetEl.prepend($('.woocommerce-order-data__heading'));
+
+                /**
+                 * Attach styles to cloned element
+                 */
+                targetEl.prepend($('#wooexp-style'));
 
                 /**
                  * Return original HTML contents after successful printing

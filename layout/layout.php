@@ -172,18 +172,28 @@ function get_order_export_layout() {
                     /**
                      * Replace thumbnail with artwork original image and place to the right side
                      */
-                    $this.find('.thumb')
+                    const imgThumb = $this.find('.thumb')
                         .appendTo($this)
-                        .find('img')
-                        .attr('src',
-                            $this.find('.download-artwork')
-                                .attr('href')
-                        ).on('load', function() {
+                        .find('img');
+
+                    const imgThumbSrc = imgThumb.attr('src');
+
+                    imgThumb
+                        .on('load', function() {
                             $(this).removeAttr('width height');
                             if (i === orderItems.length - 1) {
                                 setPrinting(targetEl, origBodyHTML);
                             }
                         })
+                        .on('error', function() {
+                            if (imgThumb.attr('src') !== imgThumbSrc) {
+                                imgThumb.attr('src', imgThumbSrc)
+                            }
+                        })
+                        .attr('src',
+                            $this.find('.download-artwork')
+                                .attr('href')
+                        )
                 })
             }
 

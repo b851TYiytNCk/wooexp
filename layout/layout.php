@@ -82,8 +82,8 @@ function get_order_export_layout() {
             }
 
             .wooexp-body-covered .thumb img {
-                width: auto;
-                height: 200px;
+                width: 400px;
+                height: auto;
             }
 
             .wooexp-body-covered tr {
@@ -103,7 +103,12 @@ function get_order_export_layout() {
             .wooexp-customer,
             .wooexp-body-covered .woocommerce-order-data__heading {
                 display: block;
-                margin-bottom: 1.2em;
+                margin-bottom: 0.8em;
+            }
+
+            .wooexp-body-covered .cfield_oitem_reject,
+            .wooexp-body-covered .wrap_note_item {
+                margin: 0.5em;
             }
         }
     </style>

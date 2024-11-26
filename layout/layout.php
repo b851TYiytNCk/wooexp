@@ -114,6 +114,14 @@ function get_order_export_layout() {
             .wooexp-body-covered .wrap_note_item {
                 margin: 0.5em;
             }
+
+            .wooexp-product-desc {
+                display: block;
+            }
+
+            .wooexp-body-covered .form-field label {
+                font-weight: bold;
+            }
         }
     </style>
     <script id="wooexp-script">
@@ -231,6 +239,12 @@ function get_order_export_layout() {
                     .remove();
 
                 /**
+                 * Show full text field contents
+                 */
+                convertAreaToSpan(targetEl.find('.cfield_oitem_reject'));
+                convertAreaToSpan(targetEl.find('.wrap_note_item'));
+
+                /**
                  * Add customer details to export layout
                  */
                 const customer = $('.wc-customer-search').find(':selected');
@@ -266,6 +280,19 @@ function get_order_export_layout() {
                 document.body.classList.add('wooexp-body-covered');
                 document.body.innerHTML = targetEl.html();
                 window.print();
+            }
+
+            function convertAreaToSpan(el) {
+                if (el.length) {
+                    const textArea = el.find('textarea');
+                    const newDetails = $('<span></span>');
+                    newDetails
+                        .addClass('wooexp-product-desc')
+                        .text(textArea.val())
+                        .appendTo(el);
+
+                    textArea.remove();
+                }
             }
         });
 

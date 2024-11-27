@@ -110,7 +110,6 @@ function get_order_export_layout() {
                 margin-bottom: 0.8em;
             }
 
-            .wooexp-body-covered .cfield_oitem_reject,
             .wooexp-body-covered .wrap_note_item {
                 margin: 0.5em;
             }
@@ -155,9 +154,7 @@ function get_order_export_layout() {
             })
 
             /**
-             * Print only specific element of a page
-             *
-             * @param id
+             * Print only specific element on a page
              */
             function printElement($itemList) {
                 var targetEl = $itemList.clone();
@@ -168,62 +165,70 @@ function get_order_export_layout() {
                 }
 
                 const orderItems = targetEl.find('#order_line_items .item');
+
                 orderItems.each( function(i) {
                     const $this  = $(this);
-
                     /**
                      * Create a row that contains item cost and quantity
                      */
                     const tr = $('<tr>');
-                    tr.addClass('wooexp-num-row');
-
-                    tr.insertAfter($this);
+                    tr.addClass('wooexp-num-row').insertAfter($this);
 
                     $this.find('td.item_cost').appendTo(tr);
                     $this.find('td.quantity').appendTo(tr);
 
                     const lineCost = $this.find('td.line_cost');
-                    lineCost.find('.refunded, .wc-order-item-discount').remove();
-                    lineCost.appendTo(tr);
+                    lineCost
+                        .appendTo(tr)
+                        .find('.refunded, .wc-order-item-discount').remove();
+
+                    /**
+                     * Check if current index is the last one to trigger next step and printing
+                     */
+                    const isLast = i === orderItems.length - 1;
 
                     /**
                      * Replace thumbnail with artwork original image and place to the right side
                      */
-                    const imgThumb = $this.find('.thumb')
-                        .appendTo($this)
+                    const artwork = $this.find('.download-artwork');
+                    const thumb = $this.find('.thumb')
+                        .appendTo($this);
+                    var imgThumb = thumb
                         .find('img');
+
+                    if ( ! imgThumb.length ) {
+                        if ( ! artwork.attr('href') ) {
+                            return isLast ? setPrinting(targetEl, origBodyHTML) : true;
+                        }
+
+                        imgThumb = $('<img>');
+                        thumb.find('.wc-order-item-thumbnail').append(imgThumb);
+                    }
 
                     const imgThumbSrc = imgThumb.attr('src');
                     var backToSrc;
 
                     imgThumb
                         .on('load', function() {
-                            $(this).removeAttr('width height');
-
-                            if (backToSrc) {
-                                imgThumb.addClass('small-width');
-                            }
-
-                            if (i === orderItems.length - 1) {
-                                setPrinting(targetEl, origBodyHTML);
-                            }
+                            imgThumb.removeAttr('width height');
+                            backToSrc && imgThumb.addClass('small-width');
+                            isLast && setPrinting(targetEl, origBodyHTML);
                         })
                         .on('error', function() {
-                            if (imgThumb.attr('src') !== imgThumbSrc) {
-                                imgThumb.attr('src', imgThumbSrc);
-                                backToSrc = true;
-                            } else if (backToSrc) {
-                                imgThumb.addClass('small-width');
-
-                                if (i === orderItems.length - 1) {
-                                    setPrinting(targetEl, origBodyHTML);
+                            if (imgThumb.attr('src') !== imgThumbSrc) { // If artwork file path is present
+                                if (imgThumbSrc) {
+                                    imgThumb.attr('src', imgThumbSrc);
+                                    backToSrc = true;
+                                } else {
+                                    imgThumb.remove();
+                                    isLast && setPrinting(targetEl, origBodyHTML);
                                 }
+                            } else if (backToSrc) {
+                                imgThumb.remove()
+                                isLast && setPrinting(targetEl, origBodyHTML);
                             }
                         })
-                        .attr('src',
-                            $this.find('.download-artwork')
-                                .attr('href')
-                        )
+                        .attr('src', artwork.attr('href'));
                 })
             }
 
@@ -232,7 +237,7 @@ function get_order_export_layout() {
                  * Clear layout to leave only product data in product section
                  */
                 targetEl
-                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item, .cfield_oitem_reject), .wc-order-bulk-actions')
+                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item), .wc-order-bulk-actions')
                     .remove();
 
                 targetEl.find('.wc-order-totals-items, #order_shipping_line_items, #order_fee_line_items, #order_refunds')
@@ -241,7 +246,6 @@ function get_order_export_layout() {
                 /**
                  * Show full text field contents
                  */
-                convertAreaToSpan(targetEl.find('.cfield_oitem_reject'));
                 convertAreaToSpan(targetEl.find('.wrap_note_item'));
 
                 /**

@@ -60,18 +60,23 @@ function get_order_export_layout() {
             background: #fff;
         }
 
-        .wooexp-customer,
-        .wooexp-body-covered .woocommerce-order-data__heading {
-            display: none;
+        @media screen {
+            .wooexp-customer,
+            .wooexp-body-covered .woocommerce-order-data__heading,
+            .wooexp-body-covered [data-name="order_notes_admin"] {
+                display: none;
+            }
         }
 
         @media print {
             .wooexp-body-covered:after,
-            .wooexp-body-covered:before {
+            .wooexp-body-covered:before,
+            [data-name="order_notes_admin"] .acf-input {
                 display: none;
             }
 
             .wooexp-body-covered table {
+                width: 100%;
                 border-collapse: collapse;
                 margin: auto;
             }
@@ -79,6 +84,10 @@ function get_order_export_layout() {
             .wooexp-body-covered td {
                 width: auto;
                 padding: 20px;
+            }
+
+            #order_line_items tr:nth-child(8n) {
+                page-break-after: always;
             }
 
             .wooexp-body-covered .thumb img {
@@ -105,13 +114,11 @@ function get_order_export_layout() {
             }
 
             .wooexp-customer,
-            .wooexp-body-covered .woocommerce-order-data__heading {
-                display: block;
-                margin-bottom: 0.8em;
-            }
-
+            .wooexp-body-covered .woocommerce-order-data__heading,
+            [data-name="order_notes_admin"],
             .wooexp-body-covered .wrap_note_item {
-                margin: 0.5em;
+                margin-top: 0.5rem;
+                margin-bottom: 0.5rem;
             }
 
             .wooexp-product-desc {
@@ -120,6 +127,14 @@ function get_order_export_layout() {
 
             .wooexp-body-covered .form-field label {
                 font-weight: bold;
+            }
+
+            .acf-label,
+            [data-name="order_notes_admin"] .wooexp-product-desc {
+                display: inline;
+                font-size: 1.3em;
+                font-weight: 600;
+                color: #1d2327;
             }
         }
     </style>
@@ -244,9 +259,17 @@ function get_order_export_layout() {
                     .remove();
 
                 /**
-                 * Show full text field contents
+                 * Add item notes
                  */
                 convertAreaToSpan(targetEl.find('.wrap_note_item'));
+
+                /**
+                 * Add order notes
+                 */
+                const orderNotes = convertAreaToSpan($('[data-name="order_notes_admin"]'));
+                orderNotes
+                    .prependTo(targetEl)
+                    .find('.acf-label').text('Order notes: ');
 
                 /**
                  * Add customer details to export layout
@@ -297,6 +320,8 @@ function get_order_export_layout() {
 
                     textArea.remove();
                 }
+
+                return el;
             }
         });
 

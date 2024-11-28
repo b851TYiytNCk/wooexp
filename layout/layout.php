@@ -79,7 +79,7 @@ function get_order_export_layout() {
                 width: 100%;
                 border-collapse: collapse;
                 margin: auto;
-                break-after: auto;
+                break-after: avoid;
             }
 
             .wooexp-body-covered td {
@@ -101,6 +101,10 @@ function get_order_export_layout() {
             .wooexp-body-covered tr {
                 border: 1px solid #000;
                 border-bottom: 0;
+                break-inside: avoid;
+            }
+
+            .item-wrap {
                 break-inside: avoid;
             }
 
@@ -183,11 +187,12 @@ function get_order_export_layout() {
 
                 orderItems.each( function(i) {
                     const $this  = $(this);
+                    $this.wrap('<tbody class="item-wrap"></tbody>');
                     /**
                      * Create a row that contains item cost and quantity
                      */
                     const tr = $('<tr>');
-                    tr.addClass('wooexp-num-row').insertAfter($this);
+                    tr.addClass('wooexp-num-row').appentTo($this.parent());
 
                     $this.find('td.item_cost').appendTo(tr);
                     $this.find('td.quantity').appendTo(tr);
@@ -297,7 +302,6 @@ function get_order_export_layout() {
                  */
                 $(window).on('afterprint', () => {
                     document.body.innerHTML = origBodyHTML;
-                    document.body.classList.remove('wooexp-body-covered');
                     location.reload();
                 })
 

@@ -79,6 +79,7 @@ function get_order_export_layout() {
                 width: 100%;
                 border-collapse: collapse;
                 margin: auto;
+                break-after: auto;
             }
 
             .wooexp-body-covered td {
@@ -86,13 +87,11 @@ function get_order_export_layout() {
                 padding: 20px;
             }
 
-            #order_line_items tr:nth-child(8n) {
-                page-break-after: always;
-            }
-
             .wooexp-body-covered .thumb img {
-                width: 300px;
+                width: auto;
                 height: auto;
+                max-height: 300px;
+                max-width: 300px;
             }
 
             .wooexp-body-covered .thumb .small-width {
@@ -102,6 +101,7 @@ function get_order_export_layout() {
             .wooexp-body-covered tr {
                 border: 1px solid #000;
                 border-bottom: 0;
+                break-inside: avoid;
             }
 
             .wooexp-body-covered .wooexp-num-row {

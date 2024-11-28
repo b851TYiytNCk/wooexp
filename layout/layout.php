@@ -24,54 +24,55 @@ function get_order_export_layout() {
             background: var(--wooBg);
         }
 
-        .wooexp-body-covered:before {
-            content: '';
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: var(--wooBg);
-            z-index: 999;
-        }
-
-        .wooexp-body-covered:after {
-            content: '';
-            position: fixed;
-            inset: 50%;
-            z-index: 999;
-            width: 50px;
-            height: 50px;
-            border: 6px solid transparent;
-            border-top: 6px solid var(--wooBlue);
-            border-bottom: 6px solid var(--wooBlue);
-            border-radius: 100%;
-            animation: 1.5s linear infinite spinCircle;
-        }
-
-        @keyframes spinCircle {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .wooexp-body-covered:after {
-            background: #fff;
-        }
-
         @media screen {
             .wooexp-customer,
             .wooexp-body-covered .woocommerce-order-data__heading,
             .wooexp-body-covered [data-name="order_notes_admin"] {
                 display: none;
             }
+
+            .wooexp-body-covered:before {
+                content: '';
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                background: var(--wooBg);
+                z-index: 999;
+            }
+
+            .wooexp-body-covered:after {
+                content: '';
+                position: fixed;
+                inset: 50%;
+                z-index: 999;
+                width: 50px;
+                height: 50px;
+                border: 6px solid transparent;
+                border-top: 6px solid var(--wooBlue);
+                border-bottom: 6px solid var(--wooBlue);
+                border-radius: 100%;
+                animation: 1.5s linear infinite spinCircle;
+            }
+
+            @keyframes spinCircle {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
         }
 
         @media print {
+            html {
+                height: 0;
+            }
+
             .wooexp-body-covered:after,
             .wooexp-body-covered:before,
-            [data-name="order_notes_admin"] .acf-input {
+            [data-name="order_notes_admin"] .acf-input,
+            .item-wrap table.display_meta {
                 display: none;
             }
 
@@ -79,6 +80,10 @@ function get_order_export_layout() {
                 width: 100%;
                 border-collapse: collapse;
                 margin: auto;
+                break-after: avoid;
+            }
+
+            .inside, .woocommerce_order_items_wrapper {
                 break-after: avoid;
             }
 
@@ -187,12 +192,15 @@ function get_order_export_layout() {
 
                 orderItems.each( function(i) {
                     const $this  = $(this);
-                    $this.wrap('<tbody class="item-wrap"></tbody>');
+
+                    $('<tbody class="item-wrap"></tbody>')
+                        .appendTo( $this.closest('.woocommerce_order_items') )
+                        .append($this);
                     /**
                      * Create a row that contains item cost and quantity
                      */
                     const tr = $('<tr>');
-                    tr.addClass('wooexp-num-row').appentTo($this.parent());
+                    tr.addClass('wooexp-num-row').appendTo($this.parent());
 
                     $this.find('td.item_cost').appendTo(tr);
                     $this.find('td.quantity').appendTo(tr);
@@ -257,10 +265,10 @@ function get_order_export_layout() {
                  * Clear layout to leave only product data in product section
                  */
                 targetEl
-                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item), .wc-order-bulk-actions')
+                    .find('.postbox-header, thead, .button, p:not(.wrap_note_item), .wc-order-refund-items, #order_line_items')
                     .remove();
 
-                targetEl.find('.wc-order-totals-items, #order_shipping_line_items, #order_fee_line_items, #order_refunds')
+                targetEl.find('.wc-order-totals-items, #order_shipping_line_items, #order_fee_line_items, #order_refunds, .wc-order-add-item, .wc-order-bulk-actions, script')
                     .remove();
 
                 /**

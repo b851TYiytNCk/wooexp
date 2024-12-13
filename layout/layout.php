@@ -176,6 +176,9 @@ function get_order_export_layout() {
                 printElement(wooItemList);
             })
 
+            var orderItems,
+                imagesProcessed = 0;
+
             /**
              * Print only specific element on a page
              */
@@ -187,7 +190,7 @@ function get_order_export_layout() {
                     return console.error('There is no such element on the page.');
                 }
 
-                const orderItems = targetEl.find('#order_line_items .item');
+                orderItems = targetEl.find('#order_line_items .item');
 
                 orderItems.each( function(i) {
                     const $this  = $(this);
@@ -248,6 +251,7 @@ function get_order_export_layout() {
 
                     imgThumb
                         .on('load', function() {
+                            ++imagesProcessed;
                             imgThumb.removeAttr('width height');
                             backToSrc && imgThumb.addClass('small-width');
                             isLast && setPrinting(targetEl, origBodyHTML);
@@ -259,10 +263,12 @@ function get_order_export_layout() {
                                     backToSrc = true;
                                 } else {
                                     imgThumb.remove();
+                                    ++imagesProcessed;
                                     isLast && setPrinting(targetEl, origBodyHTML);
                                 }
                             } else if (backToSrc) {
                                 imgThumb.remove()
+                                ++imagesProcessed;
                                 isLast && setPrinting(targetEl, origBodyHTML);
                             }
                         })
@@ -271,6 +277,15 @@ function get_order_export_layout() {
             }
 
             function setPrinting(targetEl, origBodyHTML) {
+                const checkImageLoad = setInterval( function() {
+                    if (orderItems.length === imagesProcessed) {
+                        clearInterval(checkImageLoad);
+                        startPrinting(targetEl, origBodyHTML)
+                    }
+                }, 100);
+            }
+
+            function startPrinting(targetEl, origBodyHTML) {
                 /**
                  * Clear layout to leave only product data in product section
                  */

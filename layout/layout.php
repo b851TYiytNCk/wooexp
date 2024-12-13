@@ -90,6 +90,7 @@ function get_order_export_layout() {
             .wooexp-body-covered td {
                 width: auto;
                 padding: 20px;
+                min-width: 90px;
             }
 
             .wooexp-body-covered .thumb img {
@@ -116,6 +117,11 @@ function get_order_export_layout() {
             .wooexp-body-covered .wooexp-num-row {
                 border: 1px solid #000;
                 border-top: 0;
+                break-after: page;
+            }
+
+            .wooexp-num-row td {
+                vertical-align: middle;
             }
 
             .wooexp-body-covered th {
@@ -177,14 +183,18 @@ function get_order_export_layout() {
             })
 
             var orderItems,
-                imagesProcessed = 0;
+                imagesProcessed = 0,
+                $body = $('body')
 
             /**
              * Print only specific element on a page
              */
             function printElement($itemList) {
                 var targetEl = $itemList.clone();
-                var origBodyHTML = document.body.innerHTML;
+
+                targetEl.removeClass()
+                    .attr('id', 'woo-item-list')
+                    .appendTo($body)
 
                 if ( !targetEl.length ) {
                     return console.error('There is no such element on the page.');
@@ -213,7 +223,7 @@ function get_order_export_layout() {
                         .appendTo(tr)
                         .find('.refunded, .wc-order-item-discount').remove();
 
-                    /** Get product number */
+                    /** Insert Order and product number */
                     const prodName = $this.find('.wc-order-item-name')
                     const prodParams = new URLSearchParams( '?' + prodName.attr('href').split('?')[1] );
                     if (prodParams.size) {
@@ -239,7 +249,7 @@ function get_order_export_layout() {
 
                     if ( ! imgThumb.length ) {
                         if ( ! artwork.attr('href') ) {
-                            return isLast ? setPrinting(targetEl, origBodyHTML) : true;
+                            return isLast ? setPrinting(targetEl) : true;
                         }
 
                         imgThumb = $('<img>');
@@ -254,7 +264,7 @@ function get_order_export_layout() {
                             ++imagesProcessed;
                             imgThumb.removeAttr('width height');
                             backToSrc && imgThumb.addClass('small-width');
-                            isLast && setPrinting(targetEl, origBodyHTML);
+                            isLast && setPrinting(targetEl);
                         })
                         .on('error', function() {
                             if (imgThumb.attr('src') !== imgThumbSrc) { // If artwork file path is present
@@ -264,28 +274,65 @@ function get_order_export_layout() {
                                 } else {
                                     imgThumb.remove();
                                     ++imagesProcessed;
-                                    isLast && setPrinting(targetEl, origBodyHTML);
+                                    isLast && setPrinting(targetEl);
                                 }
                             } else if (backToSrc) {
                                 imgThumb.remove()
                                 ++imagesProcessed;
-                                isLast && setPrinting(targetEl, origBodyHTML);
+                                isLast && setPrinting(targetEl);
                             }
                         })
                         .attr('src', artwork.attr('href'));
+
+                    const headerTr = getHeaderTr();
+                    headerTr.prependTo($this.parent());
                 })
             }
 
-            function setPrinting(targetEl, origBodyHTML) {
+            function getHeaderTr() {
+                const tr = $('<tr>').addClass('wooexp-header-row');
+                const td = $('<td colspan="3">');
+
+                /**
+                 * Add order notes
+                 */
+                const orderNoteEl = $('[data-name="order_notes_admin"]').clone();
+                const orderNote = switchTextAreaWithSpan(orderNoteEl)
+                    .prependTo(td)
+                    .find('.acf-label').text('Order notes: ');
+
+                /**
+                 * Add customer details to export layout
+                 */
+                const customer = $('.wc-customer-search').find(':selected');
+                if (customer.length) {
+                    const customerHtml = $(`<h3></h3>`);
+                    customerHtml.addClass('wooexp-customer');
+                    customerHtml.html(`Customer details: ${customer.text()}`);
+                    td.prepend(customerHtml);
+                }
+
+                /**
+                 * Add order number
+                 */
+                const orderNumber = $('.woocommerce-order-data__heading').clone();
+                td.prepend(orderNumber);
+
+                td.appendTo(tr);
+
+                return tr.append(td);
+            }
+
+            function setPrinting(targetEl) {
                 const checkImageLoad = setInterval( function() {
                     if (orderItems.length === imagesProcessed) {
                         clearInterval(checkImageLoad);
-                        startPrinting(targetEl, origBodyHTML)
+                        startPrinting(targetEl)
                     }
                 }, 100);
             }
 
-            function startPrinting(targetEl, origBodyHTML) {
+            function startPrinting(targetEl) {
                 /**
                  * Clear layout to leave only product data in product section
                  */
@@ -304,29 +351,6 @@ function get_order_export_layout() {
                 });
 
                 /**
-                 * Add order notes
-                 */
-                switchTextAreaWithSpan($('[data-name="order_notes_admin"]'))
-                    .prependTo(targetEl)
-                    .find('.acf-label').text('Order notes: ');
-
-                /**
-                 * Add customer details to export layout
-                 */
-                const customer = $('.wc-customer-search').find(':selected');
-                if (customer.length) {
-                    const customerHtml = $(`<h3></h3>`);
-                    customerHtml.addClass('wooexp-customer');
-                    customerHtml.html(`Customer details: ${customer.text()}`);
-                    targetEl.prepend(customerHtml);
-                }
-
-                /**
-                 * Prepend order number
-                 */
-                targetEl.prepend($('.woocommerce-order-data__heading'));
-
-                /**
                  * Attach styles to cloned element
                  */
                 targetEl.prepend($('#wooexp-style'));
@@ -335,7 +359,6 @@ function get_order_export_layout() {
                  * Return original HTML contents after successful printing
                  */
                 $(window).on('afterprint', () => {
-                    document.body.innerHTML = origBodyHTML;
                     location.reload();
                 })
 
@@ -343,7 +366,12 @@ function get_order_export_layout() {
                  * Print order items list only
                  */
                 document.body.classList.add('wooexp-body-covered');
-                document.body.innerHTML = targetEl.html();
+                try {
+                    $body.children().not('#woo-item-list').remove();
+                } catch (error) {
+                    document.querySelector('.mce-panel').remove()
+                }
+
                 window.print();
             }
 

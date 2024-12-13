@@ -158,7 +158,6 @@ function get_order_export_layout() {
         $(() => {
             /**
              * WooCommerce Order item list
-             * @type {jQuery|HTMLElement|*}
              */
             var wooItemList = $('#woocommerce-order-items');
 
@@ -193,6 +192,7 @@ function get_order_export_layout() {
                 orderItems.each( function(i) {
                     const $this  = $(this);
 
+                    /** Use to break HTML in order to have each product block undivided on print pages */
                     $('<tbody class="item-wrap"></tbody>')
                         .appendTo( $this.closest('.woocommerce_order_items') )
                         .append($this);
@@ -209,6 +209,16 @@ function get_order_export_layout() {
                     lineCost
                         .appendTo(tr)
                         .find('.refunded, .wc-order-item-discount').remove();
+
+                    /** Get product number */
+                    const prodName = $this.find('.wc-order-item-name')
+                    const prodParams = new URLSearchParams( '?' + prodName.attr('href').split('?')[1] );
+                    if (prodParams.size) {
+                       $('<div></div>')
+                           .html( `<strong><?php _e( 'Item number', 'wooexp' ); ?>:</strong> #<?php echo get_the_ID()?>-${prodParams.get('post')}`)
+                           .insertAfter( prodName.next() )
+                    }
+
 
                     /**
                      * Check if current index is the last one to trigger next step and printing
@@ -274,13 +284,14 @@ function get_order_export_layout() {
                 /**
                  * Add item notes
                  */
-                convertAreaToSpan(targetEl.find('.wrap_note_item'));
+                targetEl.find('.wrap_note_item').each( function() {
+                    switchTextAreaWithSpan( $(this) );
+                });
 
                 /**
                  * Add order notes
                  */
-                const orderNotes = convertAreaToSpan($('[data-name="order_notes_admin"]'));
-                orderNotes
+                switchTextAreaWithSpan($('[data-name="order_notes_admin"]'))
                     .prependTo(targetEl)
                     .find('.acf-label').text('Order notes: ');
 
@@ -321,7 +332,7 @@ function get_order_export_layout() {
                 window.print();
             }
 
-            function convertAreaToSpan(el) {
+            function switchTextAreaWithSpan(el) {
                 if (el.length) {
                     const textArea = el.find('textarea');
                     const newDetails = $('<span></span>');

@@ -3,7 +3,7 @@
 /**
  *      * @wordpress-plugin
  *      * Plugin Name:       WooCommerce Order Export
- *      * Version:           1.0.2
+ *      * Version:           1.0.3
  *      * Description:       Export your WooCommerce order products in a PDF file
  *      * Author:            Vladyslav Nahornyi
  *      * Author URI:        https://github.com/b851TYiytNCk

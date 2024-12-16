@@ -369,6 +369,7 @@ function get_order_export_layout() {
                 try {
                     $body.children().not('#woo-item-list').remove();
                 } catch (error) {
+                    // TODO: dispose of it
                     document.querySelector('.mce-panel').remove()
                 }
 

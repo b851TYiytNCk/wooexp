@@ -27,7 +27,8 @@ function get_order_export_layout() {
         @media screen {
             .wooexp-customer,
             .wooexp-body-covered .woocommerce-order-data__heading,
-            .wooexp-body-covered [data-name="order_notes_admin"] {
+            .wooexp-body-covered [data-name="order_notes_admin"],
+            #woo-item-list {
                 display: none;
             }
 
@@ -56,10 +57,10 @@ function get_order_export_layout() {
 
             @keyframes spinCircle {
                 0% {
-                    transform: rotate(0deg);
+                    transform: translate(-50%, -50%) rotate(0deg);
                 }
                 100% {
-                    transform: rotate(360deg);
+                    transform: translate(-50%, -50%) rotate(360deg);
                 }
             }
         }
@@ -202,6 +203,10 @@ function get_order_export_layout() {
 
                 orderItems = targetEl.find('#order_line_items .item');
 
+                /** Prepare DOM elements to clone */
+                const orderNotes = $('[data-name="order_notes_admin"]');
+                const orderNumber = $('.woocommerce-order-data__heading');
+
                 orderItems.each( function(i) {
                     const $this  = $(this);
 
@@ -232,15 +237,14 @@ function get_order_export_layout() {
                            .insertAfter( prodName.next() )
                     }
 
-
-                    /**
-                     * Check if current index is the last one to trigger next step and printing
-                     */
+                    /** Check if current index is the last one to trigger next step and printing */
                     const isLast = i === orderItems.length - 1;
 
-                    /**
-                     * Replace thumbnail with artwork original image and place to the right side
-                     */
+                    /** Add order notes and order number to each page */
+                    const headerTr = getHeaderTr(orderNumber, orderNotes);
+                    headerTr.prependTo($this.parent());
+
+                    /** Replace thumbnail with artwork original image and place to the right side */
                     const artwork = $this.find('.download-artwork');
                     const thumb = $this.find('.thumb')
                         .appendTo($this);
@@ -248,12 +252,13 @@ function get_order_export_layout() {
                         .find('img');
 
                     if ( ! imgThumb.length ) {
-                        if ( ! artwork.attr('href') ) {
-                            return isLast ? setPrinting(targetEl) : true;
-                        }
-
                         imgThumb = $('<img>');
                         thumb.find('.wc-order-item-thumbnail').append(imgThumb);
+                    }
+
+                    if ( ! artwork.attr('href') ) {
+                        ++imagesProcessed;
+                        return isLast ? setPrinting(targetEl) : true;
                     }
 
                     const imgThumbSrc = imgThumb.attr('src');
@@ -283,21 +288,17 @@ function get_order_export_layout() {
                             }
                         })
                         .attr('src', artwork.attr('href'));
-
-                    const headerTr = getHeaderTr();
-                    headerTr.prependTo($this.parent());
                 })
             }
 
-            function getHeaderTr() {
+            function getHeaderTr(orderNumber, orderNotes) {
                 const tr = $('<tr>').addClass('wooexp-header-row');
                 const td = $('<td colspan="3">');
 
                 /**
                  * Add order notes
                  */
-                const orderNoteEl = $('[data-name="order_notes_admin"]').clone();
-                const orderNote = switchTextAreaWithSpan(orderNoteEl)
+                switchTextAreaWithSpan( orderNotes.clone() )
                     .prependTo(td)
                     .find('.acf-label').text('Order notes: ');
 
@@ -315,10 +316,7 @@ function get_order_export_layout() {
                 /**
                  * Add order number
                  */
-                const orderNumber = $('.woocommerce-order-data__heading').clone();
-                td.prepend(orderNumber);
-
-                td.appendTo(tr);
+                td.prepend( orderNumber.clone() );
 
                 return tr.append(td);
             }
